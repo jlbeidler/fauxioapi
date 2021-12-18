@@ -24,13 +24,13 @@ grid = io.Grid(gridname, grid_description)
 Open I/O API dataset for reading and read a variable:
 fn = 'input_data.ncf'
 with io.IODataset(fn) as iodf:
-    var = iodf['NOX']
+var = iodf['NOX']
 
 Open I/O API dataset for writing, set dimensions, write a variable, set attributes, and write the TFLAG:
 fn = 'output_data.ncf'
 with io.IODataset(fn, 'w') as iodf:
-    iodf.set_dimensions(LAY=1, ROW=200, COL=200, VAR=1)
-    iodf_var = iodf.create_variable('NOX', 'REAL', ('TSTEP','LAY','ROW','COL'))
-    iodf_var[:] = np.zeros([25,1,200,200])
-    iodf.set_attributes('20200101', grid)
-    iodf.write_TFLAG()
+iodf.set_dimensions(LAY=1, ROW=200, COL=200, VAR=1)
+iodf_var = iodf.create_variable('NOX', 'REAL', ('TSTEP','LAY','ROW','COL'))
+iodf_var[:] = np.zeros([25,1,200,200])
+iodf.set_attributes('20200101', grid)
+iodf.write_TFLAG()

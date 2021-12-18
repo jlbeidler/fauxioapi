@@ -164,11 +164,15 @@ class Grid(object):
         return np.float64(x)
 
     def _split_line(self, line):
+        """
+        Split and strip the line
+        """
         return [cell.strip().strip("'") for cell in line.strip().split('!')[0].split(',')]
 
     def load_gridinfo(self, grid_desc):
         """
         Read in the grid description file and store the grid data as object attributes
+        Currently only supports comma delimited grid description files
         """
         with open(grid_desc) as gd:
             state = 'proj'
@@ -177,9 +181,12 @@ class Grid(object):
                 s_line = self._split_line(line)
                 if state == 'proj':
                     if s_line[0]:
-                        if s_line[0] == ' ':
+                        # If there is a line that is blank or blank when stripped then the 
+                        #  projection section is over and move to the list of grids
+                        if s_line[0].strip() == '' and len(proj_table) > 0:
                             state = 'grid'
                         else:
+                            # Read the projection section into a table
                             proj_name = line.strip().strip("'")
                             line = next(gd)
                             s_line = self._split_line(line)
@@ -190,6 +197,7 @@ class Grid(object):
                                 'XCENT': self._parse_float(s_line[4]),
                                 'YCENT': self._parse_float(s_line[5])}
                 else:
+                    # If the grid name is found then read the grid name
                     if s_line[0] == self.GDNAM:
                         line = next(gd)
                         s_line = self._split_line(line)

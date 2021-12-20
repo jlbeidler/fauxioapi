@@ -1,0 +1,13 @@
+! coords --line:  name; type, P-alpha, P-beta, P-gamma, xcent, ycent
+'LAM_40N97W'
+2, 33.0D0, 45.D0,-97.D0,-97.D0, 40.D0
+'LAM_63N_155W'
+2, 60.D0, 70.D0, -155.D0, -155.D0, 63.D0
+' '  !  end coords.  grids:  name; xorig,yorig,xcell,ycell,ncols,nrows,nthik
+'9AK2'
+'LAM_63N_155W', -1971000., -1701000., 9000., 9000., 438, 378, 1
+'36US1_148X112'     ! abbrev. = 36US1
+'LAM_40N97W', -2736.D3, -2088.D3, 36.D3, 36.D3, 148, 112, 1
+'12EUS1_279X240'  ! abbrev. = 12EUS1
+'LAM_40N97W', -1008.D3 , -1620.D3,  12.D3,  12.D3, 279, 240, 1
+' '  !  end grids.'

@@ -20,7 +20,11 @@ class IOVar(ncf.Variable):
         '''
         ioapi_dtypes = {'INT': np.int32, 'REAL': np.float32, 'DBLE': np.float64}
         np_dtype = ioapi_dtypes[dtype] 
-        ncf.Variable.__init__(self, ds, vname, np_dtype, dims)
+        # Change the dimension handling to list of objects, replacing list of keys
+        dimobj = []
+        for dimid in dims:
+            dimobj.append(ds.dimensions[dimid])
+        ncf.Variable.__init__(self, ds, vname, np_dtype, dimobj)
         self.long_name = vname.ljust(80)
         self.units = ''.ljust(80)
         self.var_desc = ''.ljust(80)
@@ -34,6 +38,9 @@ class IODataset(ncf.Dataset):
     '''
     def __init__(self, fname, mode='r', format='NETCDF3_CLASSIC', **kwargs):
         ncf.Dataset.__init__(self, fname, mode, format=format, **kwargs)
+
+    def __del__(self):
+        self.close()
 
     def create_variable(self, vname, dtype, dims, **kwargs):
         '''
@@ -89,18 +96,16 @@ class IODataset(ncf.Dataset):
             else:
                 val = getattr(grid, att)
             setattr(self, att, val)
-        var_list = [var for var in self.variables if var != 'TFLAG']
-        self.NVARS = len(var_list)
-        setattr(self, 'VAR-LIST', ''.join([var.ljust(16) for var in var_list]))
+        self.set_vars()
         # Currently only gridded / type 1 is supported
         self.FTYPE = 1
         self.SDATE = int(sdate)
-        self.IOAPI_VERSION = 'FAKE IOAPI'.ljust(80)
+        self.IOAPI_VERSION = 'CIO'.ljust(80)
         self.EXEC_ID = '?'.ljust(80)
         self.CDATE = self.WDATE = int(time.strftime('%Y%j'))
         self.CTIME = self.WTIME = int(time.strftime('%H%M%S'))
         self.UPNAM = 'FI'.ljust(16)
-        self.FILEDESC = 'FAKE IOAPI'.ljust(80)
+        self.FILEDESC = 'CIO'.ljust(80)
         self.HISTORY = ' '
         self.STIME = 0
         self.TSTEP = 10000  # One hour per step default. Override with 0 for time independent.
@@ -112,6 +117,14 @@ class IODataset(ncf.Dataset):
         # Override any attribute with a keyword arg
         for att, val in list(kwargs.items()):
             setattr(self, att, val) 
+
+    def set_vars(self):
+        '''
+        Reset the number of variables and the VAR-LIST after variables are written
+        '''
+        var_list = [var for var in self.variables if var != 'TFLAG']
+        self.NVARS = len(var_list)
+        setattr(self, 'VAR-LIST', ''.join([var.ljust(16) for var in var_list]))
 
     def calc_stride(self):
         '''
@@ -219,6 +232,7 @@ class Grid(object):
         if self.GDTYP == 1:
             proj = '+proj=latlon'
         elif self.GDTYP == 2:
+            # LCC WRF projection with 6370000m spheroid
             proj_vars = (self.P_ALP, self.P_BET, self.XCENT, self.YCENT)
             proj = '+proj=lcc +lat_1=%s +lat_2=%s +lon_0=%s +lat_0=%s +a=6370000 +b=6370000 +units=m +no_defs' %proj_vars[:]
         elif self.GDTYP == 6:
